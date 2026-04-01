@@ -4,14 +4,14 @@ import os
 logger.remove()
 
 class Task:
-    def __init__(self, title, description, importance=1, status="Новая"):
+    def __init__(self, title, description, importance=1, status="New"):
         self.title = title
         self.description = description
         self.importance = importance
         self.status = status
 
     def mark_as_done(self):
-        self.status = "Завершена"
+        self.status = "Done"
 
 class TaskManager:
     def __init__(self, tasks_file="tasks.csv"):
@@ -26,12 +26,12 @@ class TaskManager:
                 reader = csv.DictReader(file, delimiter=";")
                 for row in reader:
                     task = Task(
-                        row['Status'],
+                        row['Title'],
                         row['Description'],
                         int(row['Importance']),
-                        row['Title']
+                        row['Status']
                     )
-                    if task.status == "Завершена":
+                    if task.status == "Done":
                         self.completed_tasks.append(task)
                     else:
                         self.tasks.append(task)
@@ -42,7 +42,7 @@ class TaskManager:
             writer.writerow(["Title", "Description", "Importance", "Status"])
             for task in self.tasks:
                 writer.writerow([task.title, task.description, task.importance, task.status])
-            for task in self.tasks:
+            for task in self.completed_tasks:
                 writer.writerow([task.title, task.description, task.importance, task.status])
 
     def add_task(self, task):
@@ -73,6 +73,7 @@ class TaskManager:
             if task.title == title:
                 task.mark_as_done()
                 self.completed_tasks.append(task)
+                self.tasks.remove(task)
                 self.save_tasks()
                 message = f"Задача '{title}' отмечена как завершенная."
                 logger.success(message)
@@ -99,7 +100,7 @@ def main():
             title = input("Введите заголовок задачи: ")
             description = input("Введите описание задачи: ")
             importance = int(input("Введите индекс важности (1-5): "))
-            if 1 >= importance >= 5:
+            if 1 <= importance <= 5:
                 task = Task(title, description, importance)
                 task_manager.add_task(task)
             else:
